@@ -1,6 +1,7 @@
 #include <queue>
 #include <thread>
 #include <mutex>
+#include <chrono>
 #include <condition_variable>
 #include <iostream>
 
@@ -36,7 +37,7 @@ int g_count(0);
 int g_sum(0);
 
 void producer(Buffer& buffer, int id) {
-    int i=0;
+    int i=-1;
     while(++i<100) {
         int data = i;
         buffer.push(data);
@@ -49,16 +50,23 @@ void producer(Buffer& buffer, int id) {
     }
 }
 
+void process(int &data) {
+    this_thread::sleep_for(std::chrono::milliseconds(100));
+    data*=-1;
+}
+
 void consumer(Buffer& buffer, int id) {
-    int i=0;
+    int i=-1;
     while(++i<100) {
         int data;
         buffer.pop(data);
+        // concurrently executing process
+        process(data);
         {
             lock_guard<mutex> lock(g_mutex);
             cout<<++g_count<<" "<<id<<" consume "<<data<<"\n";
             // check
-            g_sum -= data;
+            g_sum += data;
         }
     }
 }
