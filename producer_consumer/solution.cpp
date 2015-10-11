@@ -15,16 +15,16 @@ class Buffer {
 public:
     void push(int data) {
         {
-            unique_lock<mutex> lock(m);
-            cv.wait(lock,[this](){ return data_queue.size()<max_size; });
+            unique_lock<mutex> lk(m);
+            cv.wait(lk,[this](){ return data_queue.size()<max_size; });
             data_queue.push(data);
         }
         cv.notify_all();
     }
     void pop(int& data) {
         {
-            unique_lock<mutex> lock(m);
-            cv.wait(lock,[this](){ return data_queue.size()>0; });
+            unique_lock<mutex> lk(m);
+            cv.wait(lk,[this](){ return data_queue.size()>0; });
             data = data_queue.front();
             data_queue.pop();
         }
@@ -42,7 +42,7 @@ void producer(Buffer& buffer, int id) {
         int data = i;
         buffer.push(data);
         {
-            lock_guard<mutex> lock(g_mutex);
+            lock_guard<mutex> lk(g_mutex);
             cout<<++g_count<<" "<<id<<" produce "<<data<<"\n";
             // check
             g_sum += data;
@@ -63,7 +63,7 @@ void consumer(Buffer& buffer, int id) {
         // concurrently executing process
         process(data);
         {
-            lock_guard<mutex> lock(g_mutex);
+            lock_guard<mutex> lk(g_mutex);
             cout<<++g_count<<" "<<id<<" consume "<<data<<"\n";
             // check
             g_sum += data;
