@@ -51,6 +51,7 @@ void producer(Buffer& buffer, int id) {
 }
 
 void process(int &data) {
+    // simulating data processing time
     this_thread::sleep_for(std::chrono::milliseconds(100));
     data*=-1;
 }
