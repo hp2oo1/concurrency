@@ -31,7 +31,9 @@ public:
     }
 };
 
-mutex g_m;
+mutex g_mutex;
+int g_count(0);
+int g_sum(0);
 
 void producer(Buffer& buffer, int id) {
     int i=0;
@@ -39,8 +41,10 @@ void producer(Buffer& buffer, int id) {
         int data = i;
         buffer.push(data);
         {
-            lock_guard<mutex> lock(g_m);
-            cout<<id<<" produce "<<data<<"\n";
+            lock_guard<mutex> lock(g_mutex);
+            cout<<++g_count<<" "<<id<<" produce "<<data<<"\n";
+            // check
+            g_sum += data;
         }
     }
 }
@@ -51,8 +55,10 @@ void consumer(Buffer& buffer, int id) {
         int data;
         buffer.pop(data);
         {
-            lock_guard<mutex> lock(g_m);
-            cout<<id<<" consume "<<data<<"\n";
+            lock_guard<mutex> lock(g_mutex);
+            cout<<++g_count<<" "<<id<<" consume "<<data<<"\n";
+            // check
+            g_sum -= data;
         }
     }
 }
@@ -67,4 +73,5 @@ int main() {
     t2.join();
     t3.join();
     t4.join();
+    cout<<"g_sum: "<<g_sum<<endl;
 }
